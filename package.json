@@ -1,0 +1,12 @@
+{
+  "name": "xazora",
+  "private": true,
+  "workspaces": ["shared", "web", "waiter"],
+  "scripts": {
+    "dev:web": "npm run dev -w web",
+    "dev:waiter": "npm run dev -w waiter",
+    "build": "npm run build -w web -w waiter",
+    "typecheck": "npm run typecheck -w web -w waiter",
+    "android": "npm run android:sync -w waiter && npm run android:open -w waiter"
+  }
+}

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { api } from '../api';
-import { Modal } from '../components/Modal';
-import { toastError } from '../components/Toast';
-import { hhmm } from '../format';
-import { useLoad } from '../hooks';
-import { useRealtime } from '../realtime';
-import type { PrintJob } from '../types';
+import { api } from '@shared/api';
+import { Modal } from '@shared/components/Modal';
+import { toastError } from '@shared/components/Toast';
+import { hhmm } from '@shared/format';
+import { useLoad } from '@shared/hooks';
+import { useRealtime } from '@shared/realtime';
+import type { PrintJob } from '@shared/types';
 
 const KIND_LABEL: Record<PrintJob['kind'], string> = {
   kitchen: 'Кухня',

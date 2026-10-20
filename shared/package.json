@@ -1,0 +1,12 @@
+{
+  "name": "@xazora/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Code shared by the cashier app (web/) and the waiter app (waiter/): API, auth, components, styles. Imported as @shared/...",
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  }
+}

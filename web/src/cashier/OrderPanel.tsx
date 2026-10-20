@@ -1,15 +1,15 @@
 import { useState } from 'react';
-import { api } from '../api';
-import { useAuth } from '../auth';
-import { CartList, useCart } from '../components/Cart';
-import { MenuPicker } from '../components/MenuPicker';
-import { Modal } from '../components/Modal';
-import { SentItems } from '../components/SentItems';
-import { TableGrid } from '../components/TableGrid';
-import { toast, toastError } from '../components/Toast';
-import { hhmm, money } from '../format';
-import { useMenu, useOrder } from '../hooks';
-import type { Floor, FloorTable, Order, OrderItem } from '../types';
+import { api } from '@shared/api';
+import { useAuth } from '@shared/auth';
+import { CartList, useCart } from '@shared/components/Cart';
+import { MenuPicker } from '@shared/components/MenuPicker';
+import { Modal } from '@shared/components/Modal';
+import { SentItems } from '@shared/components/SentItems';
+import { TableGrid } from '@shared/components/TableGrid';
+import { toast, toastError } from '@shared/components/Toast';
+import { hhmm, money } from '@shared/format';
+import { useMenu, useOrder } from '@shared/hooks';
+import type { Floor, FloorTable, Order, OrderItem } from '@shared/types';
 
 interface Props {
   table: FloorTable;

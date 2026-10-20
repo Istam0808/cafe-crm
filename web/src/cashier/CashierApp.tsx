@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth';
+import { useAuth } from '@shared/auth';
 import { DayReportView } from '../components/DayReportView';
-import { TableGrid } from '../components/TableGrid';
-import { toast } from '../components/Toast';
-import { TopBar } from '../components/TopBar';
-import { money } from '../format';
-import { useFloor } from '../hooks';
-import { useRealtime } from '../realtime';
+import { TableGrid } from '@shared/components/TableGrid';
+import { toast } from '@shared/components/Toast';
+import { TopBar } from '@shared/components/TopBar';
+import { money } from '@shared/format';
+import { useFloor } from '@shared/hooks';
+import { useRealtime } from '@shared/realtime';
 import { History } from './History';
 import { OrderPanel } from './OrderPanel';
 import { PrintLog } from './PrintLog';
@@ -44,7 +44,8 @@ export function CashierApp() {
     <div className="screen cashier">
       <TopBar title="Касса">
         {user?.role === 'admin' && <button className="btn btn-ghost" onClick={() => navigate('/admin')}>Админка</button>}
-        <button className="btn btn-ghost" onClick={() => navigate('/waiter')}>Режим официанта</button>
+        {/* the waiter app is a separate build, served at /waiter/ next to this one */}
+        <a className="btn btn-ghost" href="waiter/">Режим официанта</a>
       </TopBar>
       <nav className="tabs main-tabs">
         {tabs.map(([key, label]) => (

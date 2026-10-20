@@ -12,9 +12,11 @@
 
 | Часть | Технологии | Папка | Статус |
 | --- | --- | --- | --- |
-| Фронтенд: касса, админка, официант | React 18 + Vite + TypeScript | `web/` | **в работе** |
+| Фронтенд кассы и админки | React 18 + Vite + TypeScript | `web/` | **в работе** |
+| Фронтенд официанта (отдельное приложение) | React 18 + Vite + TypeScript | `waiter/` | **в работе** |
+| Общий код фронтендов: API, вход, компоненты, стили | TypeScript | `shared/` | **в работе** |
 | Бэкенд: API, печать, realtime | Django 5 + Django REST Framework + Channels | `backend/` | позже |
-| Android-приложение официанта | Capacitor (та же веб-часть официанта в APK) | `android/` | позже |
+| Android-приложение официанта | Capacitor 8 (сборка `waiter/` в APK) | `waiter/android/` | **в работе** |
 
 Пока бэкенда нет, фронтенд работает в **демо-режиме**: встроенный mock-бэкенд в браузере
 с теми же правилами и эмуляцией принтеров (раздел 8).
@@ -104,7 +106,8 @@ Android       Android       ПК на кассе       Принтер         П
    │              │         │ Django + DRF  │  :9100           :9100
    └── HTTP + WebSocket ───▶│ Channels (WS) │──── ESC/POS по TCP ─────▶
                             │ SQLite/Postgres│
-      Браузер кассы ───────▶│ раздаёт web/  │──── сеть ──▶ Принтер чеков
+      Браузер кассы ───────▶│ раздаёт web/, │
+                            │ waiter/       │──── сеть ──▶ Принтер чеков
                             └───────────────┘
 ```
 
@@ -113,10 +116,8 @@ Android       Android       ПК на кассе       Принтер         П
 ```
 crm-xazora/
 ├─ PROJECT.md                 ← этот файл
-├─ web/                       ← фронтенд (React + Vite)
-│  ├─ package.json, vite.config.ts, index.html
-│  └─ src/
-│     ├─ main.tsx, App.tsx    ← маршруты /login /waiter /cashier /admin
+├─ package.json               ← npm workspaces: shared, web, waiter
+├─ shared/src/                ← общий код обоих фронтендов, импорт как `@shared/...`
 │     ├─ types.ts             ← типы данных = контракт API
 │     ├─ api/
 │     │  ├─ index.ts          ← выбор: mock или настоящий Django
@@ -125,12 +126,20 @@ crm-xazora/
 │     │  ├─ mockSeed.ts       ← демо-меню, столы, сотрудники
 │     │  └─ tickets.ts        ← текстовый вид тикетов для эмуляции печати
 │     ├─ realtime.ts          ← WebSocket (Django Channels) или BroadcastChannel (mock)
-│     ├─ auth.tsx             ← вход, токен, роль
-│     ├─ components/          ← PinPad, Modal, TableGrid, MenuPicker …
-│     ├─ pages/Login.tsx
-│     ├─ waiter/              ← зоны → столы → категории → корзина
+│     ├─ auth.tsx             ← вход, токен, роль; у каждого приложения свой список ролей
+│     ├─ components/          ← PinPad, Modal, TableGrid, MenuPicker, Cart, TopBar …
+│     ├─ pages/Login.tsx      ← вход по PIN
+│     └─ styles.css
+├─ web/                       ← касса и админка (кассир, админ)
+│  └─ src/
+│     ├─ App.tsx              ← маршруты /login /cashier /admin
 │     ├─ cashier/             ← все столы, заказ, оплата, история, печать
-│     └─ admin/               ← меню, столы, принтеры, сотрудники, настройки, отчёт
+│     ├─ admin/               ← меню, столы, принтеры, сотрудники, настройки, отчёт
+│     └─ components/DayReportView.tsx
+├─ waiter/                    ← приложение официанта (телефон, потом APK)
+│  └─ src/
+│     ├─ App.tsx              ← маршруты /login и / (зоны → столы → заказ)
+│     └─ WaiterApp.tsx        ← зоны → столы → категории → корзина
 ├─ backend/                   ← Django (следующий этап)
 └─ android/                   ← Capacitor-проект (следующий этап)
 ```
@@ -139,13 +148,13 @@ crm-xazora/
 
 | Модель | Поля (главное) | Назначение |
 | --- | --- | --- |
-| `User` | name, role (`admin`/`cashier`/`waiter`), pin (хеш, ровно 4 цифры), is_active | Сотрудники. Можно расширить `AbstractBaseUser`, вход по `id + PIN` |
+| `User` | name, role (`admin`/`cashier`/`waiter`), pin (хеш, ровно 4 цифры), is_active | Сотрудники. Можно расширить `AbstractBaseUser`, вход по `id + PIN` (касса) или по одному PIN (официант). **PIN у активных сотрудников не повторяется** — при сохранении 400 «Этот PIN уже у другого сотрудника» |
 | `Zone` | name («Зал», «Улица»), service_percent, sort, is_active | Зоны посадки |
 | `Table` | zone, name, sort, is_active | Столы |
 | `Printer` | name, ip, port (9100), codepage (`cp866`/`cp1251`), codepage_id, width (58/80), emulate, is_active | Термопринтеры |
 | `Station` | name («Салатница»), printer, is_active | Цеха |
-| `Category` | name, station, sort, is_active | Категории меню |
-| `Product` | category, name, price, station (переопределение), sort, is_active | Блюда |
+| `Category` | name, station, image, sort, is_active | Категории меню |
+| `Product` | category, name, price, station (переопределение), image, sort, is_active | Блюда |
 | `Order` | table, waiter, status (`open`/`paid`/`cancelled`), rounds, service_percent, discount, subtotal, service_amount, total, paid_cash, paid_card, change_given, cashier, receipt_no, void_reason, opened_at, closed_at | Заказ стола. **Уникальный индекс:** один `open` на стол |
 | `OrderItem` | order, product, name и price (снимок), qty, station, round, comment, status (`active`/`cancelled`), added_by, added_at, cancelled_by, cancelled_at, cancel_reason | Позиции |
 | `Round` | order, round, request_id (unique), user, created_at | Отправки с телефона, защита от дублей |
@@ -156,8 +165,8 @@ crm-xazora/
 
 ## 6. Контракт API (фронтенд ↔ Django)
 
-Фронтенд уже написан под этот контракт: типы лежат в [`web/src/types.ts`](web/src/types.ts),
-клиент в [`web/src/api/http.ts`](web/src/api/http.ts). JSON в `snake_case`, деньги — целые числа.
+Фронтенд уже написан под этот контракт: типы лежат в [`shared/src/types.ts`](shared/src/types.ts),
+клиент в [`shared/src/api/http.ts`](shared/src/api/http.ts). JSON в `snake_case`, деньги — целые числа.
 
 **Авторизация:** DRF TokenAuthentication, заголовок `Authorization: Token <key>`.
 **Ошибки:** HTTP-статус + `{"detail": "Текст для пользователя"}` (стандарт DRF).
@@ -166,9 +175,9 @@ crm-xazora/
 | Метод и путь | Кто | Тело запроса → ответ |
 | --- | --- | --- |
 | `GET /api/auth/users/` | все, без токена | → `[{id, name, role}]` для экрана входа |
-| `POST /api/auth/login/` | все, без токена | `{user_id, pin}` → `{token, user: {id, name, role}}` |
+| `POST /api/auth/login/` | все, без токена | `{user_id?, pin}` → `{token, user: {id, name, role}}`. Без `user_id` сотрудник ищется по одному PIN (так входит приложение официанта). Неверный PIN → 401; после 5 неудачных попыток с одного устройства — пауза 1 минута (429) |
 | `POST /api/auth/logout/` | все | → `{}` |
-| `GET /api/menu/` | все | → `{categories: Category[], products: Product[]}` (только активные) |
+| `GET /api/menu/` | все | → `{categories: Category[], products: Product[]}` (только активные). У категорий и блюд поле `image` — URL фото или `null` |
 | `GET /api/floor/` | все | → `{zones: Zone[], tables: FloorTable[]}`, у стола `order: null` или `{id, total, waiter_id, waiter_name, opened_at, items_count}` |
 | `GET /api/orders/{id}/` | все | → `Order` |
 | `POST /api/tables/{id}/rounds/` | все | `{request_id, items: [{product_id, qty, comment}]}` → `Order`. Открывает стол, если свободен; печатает тикеты в цеха |
@@ -206,7 +215,7 @@ crm-xazora/
 - Очередь: модель `PrintJob` + фоновый воркер (`python manage.py print_worker` или Celery/Django-Q),
   печатает задания каждого принтера строго по порядку, 3 попытки, затем `failed`.
 - Документы: кухонный тикет, «ОТМЕНА», пречек, чек оплаты, X-отчёт. Их текстовый вид уже
-  реализован в демо-режиме ([`web/src/api/tickets.ts`](web/src/api/tickets.ts)) и служит образцом.
+  реализован в демо-режиме ([`shared/src/api/tickets.ts`](shared/src/api/tickets.ts)) и служит образцом.
 
 > **Важно (Узбекистан):** напечатанный чек — это не фискальный чек. Для легальной работы
 > нужна онлайн-ККМ / фискальный модуль. Интеграция с ним — отдельный этап.
@@ -215,35 +224,65 @@ crm-xazora/
 
 ### Экраны
 
-| Путь | Кто | Что |
+Фронтенд — два отдельных приложения с общим кодом в `shared/`:
+
+- **`waiter/`** — официант. Входят официанты, кассир и админ. Собирается в APK.
+- **`web/`** — касса и админка. Входят только кассир и админ.
+
+Бэкенд раздаёт `web/dist` по адресу `/`, а `waiter/dist` — по адресу `/waiter/`
+(кнопка «Режим официанта» на кассе ведёт туда). Обе сборки с относительными путями,
+поэтому работают из любой папки.
+
+| Приложение и путь | Кто | Что |
 | --- | --- | --- |
-| `/login` | все | Плитки с именами → PIN-пад (4 цифры, вход сразу после четвёртой) |
-| `/waiter` | официант (и все остальные) | Зона → столы (свободен / мой / чужой) → категории и блюда, корзина, комментарий к блюду, «Отправить». Отправленное видно с замком |
-| `/cashier` | кассир, админ | Слева все столы по зонам с суммами в реальном времени. Справа заказ по заходам: отменить позицию (с причиной и количеством), добавить блюда, обслуживание, скидка, пересадить, пречек, оплата (наличные / карта / смешанно, сдача). Вкладки «История чеков», «Отчёт за день», «Печать» |
-| `/admin` | админ | Меню (категории, блюда, цеха), зоны и столы, принтеры и цеха, сотрудники и PIN, настройки, отчёт |
+| `waiter/`: `#/login` | официант, кассир, админ | Только PIN-пад: сотрудник определяется по PIN (4 цифры, вход сразу после четвёртой) |
+| `web/`: `#/login` | кассир, админ | Только PIN-пад, как у официанта |
+| `waiter/`: `#/` | официант, кассир, админ | Зона → столы (свободен / мой / чужой) → категории и блюда, корзина, комментарий к блюду, «Отправить». Отправленное видно с замком |
+| `web/`: `#/cashier` | кассир, админ | Слева все столы по зонам с суммами в реальном времени. Справа заказ по заходам: отменить позицию (с причиной и количеством), добавить блюда, обслуживание, скидка, пересадить, пречек, оплата (наличные / карта / смешанно, сдача). Вкладки «История чеков», «Отчёт за день», «Печать» |
+| `web/`: `#/admin` | админ | Меню (категории, блюда, цеха), зоны и столы, принтеры и цеха, сотрудники и PIN, настройки, отчёт |
 
 ### Демо-режим (без бэкенда)
 
-Если `VITE_API_URL` не задан, фронт использует mock-бэкенд ([`web/src/api/mock.ts`](web/src/api/mock.ts)):
+Если `VITE_API_URL` не задан, фронт использует mock-бэкенд ([`shared/src/api/mock.ts`](shared/src/api/mock.ts)):
 
 - данные хранятся в `localStorage` браузера, кнопка «Сбросить демо-данные» в админке;
+- фото блюд демо-меню лежат в `shared/public/menu` (Wikimedia Commons, авторы и лицензии — в `CREDITS.md` там же);
 - соблюдаются те же правила, что в разделах 2–3 (права, заходы, отмены, оплата, отчёт);
 - печать эмулируется: на кассе во вкладке «Печать» видно, какой тикет ушёл в какой цех;
-- если открыть официанта и кассу в двух вкладках, касса обновляется вживую.
+- если открыть официанта (`http://localhost:5173/waiter/`) и кассу (`http://localhost:5173/`) в двух вкладках,
+  касса обновляется вживую. Для этого dev-сервер кассы проксирует `/waiter/` на dev-сервер официанта:
+  у обоих один адрес, значит, общий `localStorage`.
 
-Демо-сотрудники: **Админ — 0000**, **Кассир — 1111**, **Али — 1234**, **Азиз — 4321**.
+Демо-сотрудники: **Админ — 0000** (касса и админка, один аккаунт), **Али — 1234**, **Азиз — 4321**.
 
 ### Запуск
 
 ```bash
-cd web
-npm install
-npm run dev          # http://localhost:5173 — демо-режим
+npm install          # в корне репозитория: ставит shared, web и waiter разом
+npm run dev:waiter   # в одном терминале: официант, порт 5174
+npm run dev:web      # в другом: касса http://localhost:5173, официант http://localhost:5173/waiter/
 
 # с настоящим Django:
-# web/.env.local →  VITE_API_URL=http://192.168.1.10:8000
-npm run build        # web/dist — раздаётся Django (whitenoise) или nginx
+# web/.env.local и waiter/.env.local →  VITE_API_URL=http://192.168.1.10:8000
+npm run build        # web/dist и waiter/dist — раздаются Django (whitenoise) или nginx
+npm run typecheck
 ```
+
+### Android-приложение официанта (планшеты)
+
+`waiter/android/` — проект Android Studio, созданный Capacitor. Внутри него лежит сборка `waiter/dist`.
+
+```bash
+npm run android      # собрать waiter, скопировать в waiter/android и открыть Android Studio
+```
+
+- После любой правки фронтенда снова `npm run android` (или `npm run android:sync -w waiter`), затем ▶ Run в Android Studio.
+- Нужна Java 25 из Android Studio (`D:/programs/android-studio/jbr`), поэтому Gradle обновлён до 9.1.
+- `waiter/android/local.properties` (путь к SDK) не в git — на другом компьютере Android Studio создаст его сам.
+- Приложение открывается по `http://`, а не `https://` (`capacitor.config.ts`), иначе Android запретит запросы
+  к бэкенду на кассе по `http://192.168…`.
+- Адрес сервера задаётся на экране входа (⚙). Без адреса приложение работает в демо-режиме.
+
 
 ## 9. Оборудование
 
@@ -259,8 +298,8 @@ npm run build        # web/dist — раздаётся Django (whitenoise) ил�
 | Этап | Что входит | Статус |
 | --- | --- | --- |
 | **1. Фронтенд** | Экраны официанта, кассы, админки, демо-бэкенд, эмуляция печати, контракт API | в работе |
-| **2. Django** | Модели, DRF API по контракту из раздела 6, Channels, очередь печати ESC/POS, раздача `web/dist` | план |
-| **3. Android** | Capacitor-APK для официантов, ввод адреса сервера, автопереподключение | план |
+| **2. Django** | Модели, DRF API по контракту из раздела 6, Channels, очередь печати ESC/POS, раздача `web/dist` и `waiter/dist` | план |
+| **3. Android** | Capacitor-APK из `waiter/`, ввод адреса сервера, автопереподключение | план |
 | **4. Касса+** | Объединение и разделение счёта, Z-отчёт (закрытие смены), отчёт за период, экспорт в Excel | план |
 | **5. Дополнительно** | Стоп-лист, модификаторы, экран кухни (KDS), склад, резервные копии, фискализация, Click / Payme | по желанию |
 

@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from 'react';
-import { api } from '../api';
-import { Modal } from '../components/Modal';
-import { toast, toastError } from '../components/Toast';
-import { money } from '../format';
-import type { AdminResource, AdminResources } from '../types';
+import { api } from '@shared/api';
+import { Modal } from '@shared/components/Modal';
+import { toast, toastError } from '@shared/components/Toast';
+import { money } from '@shared/format';
+import type { AdminResource, AdminResources } from '@shared/types';
 
 export type FieldDef<T> = {
   key: keyof T & string;

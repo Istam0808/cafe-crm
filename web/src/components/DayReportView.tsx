@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { api } from '../api';
-import { hhmm, money, today } from '../format';
-import { useLoad } from '../hooks';
-import { useRealtime } from '../realtime';
-import { toast, toastError } from './Toast';
+import { api } from '@shared/api';
+import { hhmm, money, today } from '@shared/format';
+import { useLoad } from '@shared/hooks';
+import { useRealtime } from '@shared/realtime';
+import { toast, toastError } from '@shared/components/Toast';
 
 export function DayReportView() {
   const [date, setDate] = useState(today());

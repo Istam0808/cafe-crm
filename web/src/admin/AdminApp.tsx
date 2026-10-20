@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, isDemo } from '../api';
-import { resetDemo } from '../api/mock';
+import { api, isDemo } from '@shared/api';
+import { resetDemo } from '@shared/api/mock';
 import { DayReportView } from '../components/DayReportView';
-import { toast, toastError } from '../components/Toast';
-import { TopBar } from '../components/TopBar';
-import { ROLE_LABEL } from '../format';
-import { useLoad } from '../hooks';
-import type { AdminResource, AdminResources, Settings } from '../types';
+import { toast, toastError } from '@shared/components/Toast';
+import { TopBar } from '@shared/components/TopBar';
+import { ROLE_LABEL } from '@shared/format';
+import { useLoad } from '@shared/hooks';
+import type { AdminResource, AdminResources, Settings } from '@shared/types';
 import { CrudTable } from './CrudTable';
 
 type Tab = 'menu' | 'floor' | 'printers' | 'users' | 'settings' | 'report';

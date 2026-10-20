@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { api } from '../api';
-import { Modal } from '../components/Modal';
-import { SentItems } from '../components/SentItems';
-import { toast, toastError } from '../components/Toast';
-import { hhmm, money, today } from '../format';
-import { useLoad, useOrder } from '../hooks';
-import { useRealtime } from '../realtime';
+import { api } from '@shared/api';
+import { Modal } from '@shared/components/Modal';
+import { SentItems } from '@shared/components/SentItems';
+import { toast, toastError } from '@shared/components/Toast';
+import { hhmm, money, today } from '@shared/format';
+import { useLoad, useOrder } from '@shared/hooks';
+import { useRealtime } from '@shared/realtime';
 
 export function History() {
   const [date, setDate] = useState(today());

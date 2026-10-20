@@ -62,7 +62,7 @@ export interface MockDb {
   next_receipt_no: number;
 }
 
-export const MOCK_DB_VERSION = 3;
+export const MOCK_DB_VERSION = 4;
 
 export function seedDb(): MockDb {
   let seq = 0;
@@ -100,23 +100,74 @@ export function seedDb(): MockDb {
   const fastfood = station('Фаст-фуд', '192.168.1.53');
   const bar = station('Бар', '192.168.1.54');
 
-  // photos live in shared/public/menu (copied into both apps), see CREDITS.md there
+  // the real Xazora City menu from oddmenu.com/ru/p/xazora-city-1; photos live in
+  // shared/public/menu (copied into both apps), see SOURCE.md there
   const photo = (name: string) => `menu/${name}.jpg`;
-  const menu: [string, number | null, string, [string, number, string][]][] = [
-    ['Горячие блюда', hot, 'plov', [['Плов', 35000, 'plov'], ['Лагман', 30000, 'lagman'], ['Шурпа', 28000, 'shurpa'], ['Манты (5 шт)', 30000, 'manti'], ['Казан-кабоб', 55000, 'kazan-kabob']]],
-    ['Салаты', salad, 'caesar', [['Ачичук', 12000, 'achichuk'], ['Цезарь', 32000, 'caesar'], ['Оливье', 20000, 'olivier'], ['Овощной', 18000, 'vegetable-salad']]],
-    ['Фаст-фуд', fastfood, 'burger', [['Бургер', 32000, 'burger'], ['Чизбургер', 36000, 'cheeseburger'], ['Хот-дог', 20000, 'hotdog'], ['Лаваш', 28000, 'lavash'], ['Картофель фри', 15000, 'fries']]],
-    ['Напитки', bar, 'black-tea', [['Чай зелёный (чайник)', 8000, 'green-tea'], ['Чай чёрный (чайник)', 8000, 'black-tea'], ['Кофе американо', 15000, 'americano'], ['Компот', 8000, 'kompot']]],
-    ['Холодильник', null, 'cola', [['Вода 0.5', 4000, 'water'], ['Coca-Cola 0.5', 9000, 'cola'], ['Сок 1 л', 18000, 'juice']]],
-    ['Хлеб', null, 'non', [['Лепёшка', 5000, 'non']]],
+  // [name, price, photo, station override]
+  type Item = [string, number, string, number?];
+  const menu: [string, number | null, string, Item[]][] = [
+    ['Завтраки', hot, 'breakfast', [
+      ['Сет «Сладкий завтрак»', 40000, 'sweet-breakfast-set'], ['Манная каша', 15000, 'semolina'], ['Мёд', 10000, 'honey'],
+      ['Сгущённое молоко', 10000, 'condensed-milk'], ['Сливки', 10000, 'cream'], ['Омлет', 35000, 'omelette'],
+      ['Рисовая каша', 25000, 'rice-porridge'], ['Гренки', 15000, 'croutons'], ['Утренний заряд', 25000, 'morning-boost'],
+    ]],
+    ['Салаты', salad, 'fresh-salad', [
+      ['Свежий', 20000, 'fresh-salad'], ['Мужской каприз', 35000, 'mens-caprice'], ['Цезарь', 30000, 'caesar'],
+      ['Зелёный ассорти', 19000, 'green-assorti'], ['Оливье', 30000, 'olivier'], ['Соленье', 20000, 'pickles'],
+      ['Французский', 30000, 'french-salad'], ['Свежий средний', 15000, 'fresh-salad-medium'], ['Чиракчи', 25000, 'chirakchi'],
+      ['Анзур', 15000, 'anzur'], ['Греческий', 27000, 'greek-salad'], ['Мажнунтол', 25000, 'majnuntol'],
+      ['Морковный салат', 13000, 'carrot-salad'], ['Чака', 10000, 'chaka'], ['Универсальный салат', 10000, 'universal-salad'],
+    ]],
+    ['Первые блюда', hot, 'lagman', [
+      ['Илик шурбо', 38000, 'ilik-shurbo'], ['Уноши', 25000, 'unoshi'], ['Лагман', 40000, 'lagman'], ['Мастава', 25000, 'mastava'],
+    ]],
+    ['Вторые блюда', hot, 'plov', [
+      ['Казан кебаб', 58000, 'kazan-kebab'], ['Лагман жареный', 45000, 'fried-lagman'], ['Голубцы', 35000, 'golubtsy'],
+      ['Туй кебаб', 53000, 'tuy-kebab'], ['Бифштекс', 45000, 'beefsteak'], ['Пельмени', 35000, 'pelmeni'],
+      ['Манты', 8000, 'manti'], ['Плов', 60000, 'plov'], ['Кувват-плов', 99000, 'kuvvat-plov'], ['Самса', 10000, 'samsa'],
+    ]],
+    ['Шашлыки', hot, 'shashlik-assorti', [
+      ['Шашлык молотый', 30000, 'shashlik-minced'], ['Шашлык кусковой говядины', 33000, 'shashlik-beef'],
+      ['Шашлык кусковой баранины', 33000, 'shashlik-lamb'], ['Шашлык Наполеон', 33000, 'shashlik-napoleon'],
+      ['Шашлык рулет', 33000, 'shashlik-roll'], ['Шашлык вырезка', 45000, 'shashlik-tenderloin'],
+      ['Шашлык бикин', 40000, 'shashlik-bikin'], ['Шашлык корейка', 50000, 'shashlik-rack'],
+      ['Котлета с сыром', 30000, 'shashlik-cheese-cutlet'], ['Шашлык рыба', 30000, 'shashlik-fish'],
+      ['Шашлык крылышки', 28000, 'shashlik-wings'], ['Акараска', 30000, 'shashlik-akaraska'],
+      ['Шашлык печень', 28000, 'shashlik-liver'], ['Шашлык думба', 28000, 'shashlik-dumba'],
+      ['Ассорти шашлыков', 165000, 'shashlik-assorti'], ['Мясное ассорти', 285000, 'meat-assorti'],
+    ]],
+    ['Гарниры', hot, 'fries', [['Картофель фри', 15000, 'fries']]],
+    ['Хлеб', null, 'non', [['Хлеб', 6000, 'non']]],
+    ['Хот-доги', fastfood, 'hotdog', [
+      ['Канадский хот-дог, 2 сосиски', 20000, 'hotdog'], ['Канадский хот-дог, 3 сосиски', 25000, 'hotdog'],
+    ]],
+    ['Лаваш', fastfood, 'lavash-category', [
+      ['Лаваш', 40000, 'lavash'], ['Лаваш большой', 45000, 'lavash-big'], ['Лаваш большой с сыром', 48000, 'lavash-big-cheese'],
+    ]],
+    ['Шаурма', fastfood, 'shawarma', [['Шаурма пита', 40000, 'shawarma'], ['Шаурма пита большая', 45000, 'shawarma']]],
+    ['Бургеры', fastfood, 'burger', [
+      ['Классик бургер', 45000, 'burger'], ['Чизбургер', 48000, 'cheeseburger'],
+      ['Дабл бургер', 60000, 'double-burger'], ['Дабл чизбургер', 65000, 'double-cheeseburger'],
+    ]],
+    ['Чикен', fastfood, 'chicken-wings', [
+      ['Чикен крылышки', 80000, 'chicken-wings'], ['Чикен голень', 80000, 'chicken-drumsticks'],
+      ['Чикен филе', 80000, 'chicken-fillet'], ['Фри', 15000, 'chicken-fries'],
+    ]],
+    ['Чай', bar, 'black-tea', [['Чёрный чай', 5000, 'black-tea'], ['Зелёный чай', 5000, 'green-tea'], ['Чай с лимоном', 15000, 'lemon-tea']]],
+    ['Кофе', bar, 'coffee', [['Кофе Савой', 10000, 'coffee'], ['Кофе 3 в 1', 7000, 'coffee']]],
+    ['Напитки', null, 'drinks', [
+      ['Coca-Cola 1 л', 15000, 'drinks'], ['Coca-Cola 0.5', 8000, 'drinks'], ['Pepsi 1 л', 15000, 'drinks'], ['Pepsi 0.5', 8000, 'drinks'],
+      ['Fanta 1 л', 15000, 'drinks'], ['Fanta 0.5', 8000, 'drinks'], ['Сочная долина', 15000, 'drinks'], ['Динай', 15000, 'drinks'],
+      ['Chortoq', 15000, 'drinks'], ['Вода', 5000, 'drinks'], ['Газированная вода', 5000, 'drinks'], ['Мохито', 15000, 'drinks', bar],
+    ]],
   ];
   const categories: AdminCategory[] = [];
   const products: AdminProduct[] = [];
   menu.forEach(([name, station_id, image, items], ci) => {
     const category: AdminCategory = { id: id(), name, station_id, image: photo(image), sort: ci + 1, is_active: true };
     categories.push(category);
-    items.forEach(([pname, price, pimage], pi) => {
-      products.push({ id: id(), category_id: category.id, name: pname, price, station_id: null, image: photo(pimage), sort: pi + 1, is_active: true });
+    items.forEach(([pname, price, pimage, pstation], pi) => {
+      products.push({ id: id(), category_id: category.id, name: pname, price, station_id: pstation ?? null, image: photo(pimage), sort: pi + 1, is_active: true });
     });
   });
 

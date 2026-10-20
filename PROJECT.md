@@ -246,7 +246,7 @@ crm-xazora/
 Если `VITE_API_URL` не задан, фронт использует mock-бэкенд ([`shared/src/api/mock.ts`](shared/src/api/mock.ts)):
 
 - данные хранятся в `localStorage` браузера, кнопка «Сбросить демо-данные» в админке;
-- фото блюд демо-меню лежат в `shared/public/menu` (Wikimedia Commons, авторы и лицензии — в `CREDITS.md` там же);
+- меню, цены и фото блюд взяты с OddMenu Xazora City (oddmenu.com/ru/p/xazora-city-1), фото лежат в `shared/public/menu` (источник — `SOURCE.md` там же);
 - соблюдаются те же правила, что в разделах 2–3 (права, заходы, отмены, оплата, отчёт);
 - печать эмулируется: на кассе во вкладке «Печать» видно, какой тикет ушёл в какой цех;
 - если открыть официанта (`http://localhost:5173/waiter/`) и кассу (`http://localhost:5173/`) в двух вкладках,
